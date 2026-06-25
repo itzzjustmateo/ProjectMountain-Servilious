@@ -32,6 +32,6 @@ F1 -> FPS / UPS
 
 ### ADITIONAL NOTICE ### 
 
-If anyone wants to help Contribute they can ask me @ severedbow737 on discord, and tell me what you want to contribute for. i'll then decide if i want to add you as contributor or no!
+If anyone wants to help Contribute they can ask me @ severedbow737 on discord, and tell me what you want to contribute for. i'll then decide if i want to add you as contributor or no !
 
 
