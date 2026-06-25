@@ -2,15 +2,16 @@ package com.servilious.projmtn;
 
 import com.servilious.projmtn.shaders.BaseShader;
 import imgui.ImGui;
+import imgui.ImVec2;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import static org.lwjgl.glfw.GLFW.glfwGetCurrentContext;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
@@ -23,18 +24,23 @@ public class Main implements Runnable {
     private String glslVer = "#version 330 core";
     private BaseShader shader;
     private BaseCamera camera;
+    private Terrain terrain;
 
-    private int vao, vbo;
+    private int vao, vbo, ebo;
+    private Skybox skybox = new Skybox();
     private float positions[] = {
-            //Bottom Left (BL) triangle | Position
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.5f, 0.5f, 0.0f,
-            //Upper Right (UR) triangle
-            0.5f, 0.5f, 0.0f,
-            -0.5f, 0.5f, 0.0f,
-            -0.5f, -0.5f, 0.0f,
+        -255, -2.0f, -255,
+        255, -2.0f, -255,
+            255, -2.0f, 255,
+        -255, -2.0f, 255,
     };
+
+    int indices[] = {
+            0, 1, 2,
+            2, 3, 0
+    };
+
+
 
     public void setupQuad() {
         vao = glGenVertexArrays();
@@ -43,10 +49,18 @@ public class Main implements Runnable {
         vbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
+        ebo = glGenBuffers();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
         FloatBuffer fb = BufferUtils.createFloatBuffer(positions.length);
         fb.put(positions);
         fb.flip();
         glBufferData(GL_ARRAY_BUFFER, fb, GL_STATIC_DRAW);
+
+        IntBuffer ib = BufferUtils.createIntBuffer(indices.length);
+        ib.put(indices);
+        ib.flip();
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, ib, GL_STATIC_DRAW);
 
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 12, 0);
         glEnableVertexAttribArray(0);
@@ -69,7 +83,7 @@ public class Main implements Runnable {
         while (!window.shouldDestroyWindow()) {
             update();
         }
-        clearMem();
+        clearMem(); 
     }
 
     private void update() {
@@ -85,20 +99,24 @@ public class Main implements Runnable {
         Matrix4f proj = new Matrix4f().identity().perspective(45, (float) window.getWidth() / window.getHeight(), 0.01f, 1000.0f);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.1f, 0.15f, 1.0f, 1.0f);
+        glClearColor(0, 0, 0, 1.0f);
         implGl3.newFrame();
         implGlfw.newFrame();
 
 
         ImGui.newFrame();
         ImGui.begin("Debug");
+        ImGui.setWindowSize(new ImVec2(400, 200));
         ImGui.text("Hello World!");
+        camera.drawCamStats();
         ImGui.end();
         shader.start();
         shader.setProj(proj);
         shader.setView(view);
         shader.setTransformation(transform);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+       // glBindVertexArray(terrain.getTvao());
+     //   glDrawArrays(GL_TRIANGLES, 0, 999);
         shader.stop();
         camera.move(window.getWindow());
         ImGui.render();
@@ -119,7 +137,10 @@ public class Main implements Runnable {
         window.createWindow();
         initImGUI();
         shader = new BaseShader();
+        terrain = new Terrain();
+        terrain.generateTerrain(0 ,0);
         setupQuad();
+        skybox.loadSkybox();
     }
 
     private void clearMem() {

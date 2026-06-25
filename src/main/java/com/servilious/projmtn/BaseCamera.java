@@ -1,5 +1,6 @@
 package com.servilious.projmtn;
 
+import imgui.ImGui;
 import org.joml.Vector3f;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -51,6 +52,11 @@ public class BaseCamera { //This is used for testing until i figure how to add a
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
             pitch -= 0.025f;
         }
+    }
+
+    public void drawCamStats() {
+        ImGui.textColored(30, 105, 255, 255, "Player XYZ: " + position.x + ", " + position.y + ", " + position.z);
+
     }
 
     public Vector3f getPos() {
