@@ -2,7 +2,7 @@
 
 (THIS IS AN LWJGL 2 VERSION OF THE GAME AND THE VERSION I WORKING ON THE MOST)
 
-Project Mountain : Servilious 
+Project Mountain : Servilious, 
 
 is planed to be an Java LWJGL Game where you can Explore an map, 
 Traverse through Mountains or Forests, Settle Vilages or Build your own, 

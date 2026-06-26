@@ -1,9 +1,14 @@
 package com.servilious.projmtn;
 
 import com.servilious.projmtn.model.BaseModel;
+import com.servilious.projmtn.model.Model;
 import com.servilious.projmtn.model.Renderer;
 import com.servilious.projmtn.model.VertexLoader;
+import com.servilious.projmtn.model.textures.BaseModelTexture;
+import com.servilious.projmtn.model.textures.TexturedModel;
 import com.servilious.projmtn.shader.BaseShader;
+import com.servilious.projmtn.util.Camera;
+import org.lwjgl.util.vector.Vector3f;
 
 
 public class Main {
@@ -16,33 +21,59 @@ public class Main {
 
 
         float positions[] = {
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.5f, 0.5f, 0.0f,
-            -0.5f, 0.5f, 0.0f,
+            -1, -1, -1,
+            1, -1, -1,
+            1, 1, -1,
+            -1, 1, -1,
+
+                -1, -1, 1,
+                1, -1, 1,
+                1, 1, 1,
+                -1, 1, 1,
         };
 
         int indices[] = {
-            0, 1, 2, 2, 3, 0
+            0, 1, 2, 2, 3, 0,
+            4, 5, 6, 6, 7, 4,
         };
 
+        float texCoords[] = {
+                0, 0,
+                1, 0,
+                1, 1,
+                0, 1,
 
-
-        Renderer renderer = new Renderer();
-        VertexLoader loader = new VertexLoader();
-        BaseModel model = loader.sendToVao(positions, indices);
-
+                0, 0,
+                1, 0,
+                1, 1,
+                0, 1,
+        };
         BaseShader shader = new BaseShader();
-        System.out.println(model.getVerticesCount());
 
+        Renderer renderer = new Renderer(shader);
+        VertexLoader loader = new VertexLoader();
+        String resPath = "/logo/logo.png";
+        BaseModel baseModel = loader.sendToVao(positions, texCoords  ,indices);
+        BaseModelTexture tex = new BaseModelTexture(loader.loadTexture(resPath));
+        TexturedModel texturedModel = new TexturedModel(baseModel, tex);
+        Model model = new Model(texturedModel, new Vector3f(0, 0, 0), 0, 0, 0, 1);
+
+
+        System.out.println(baseModel.getVerticesCount());
+        Camera camera = new Camera();
         while (!display.isDestroyed()) {
+         //   model.increasePos(0, 0.0f, -0.5f);
+       //     model.increaseRot(0, 0, 0.0f);
             renderer.clearGlBuffers();
+            camera.update();
             shader.begin();
-            renderer.render(model);
+            shader.loadView(camera);
+            renderer.render(model, shader);
             shader.end();
             display.updateDisplay();
         }
         loader.clearMem();
+        shader.clearMem();
         display.destroyDisplay();
     }
 }

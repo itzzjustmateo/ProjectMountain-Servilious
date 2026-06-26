@@ -1,15 +1,21 @@
 package com.servilious.projmtn.shader;
 
+import org.lwjgl.BufferUtils;
+import org.lwjgl.util.vector.*;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public abstract class BaseShaderProgram {
     private int vertexId, fragmentId, programId;
+    private FloatBuffer mb4x4 = BufferUtils.createFloatBuffer(16);
+    private FloatBuffer mb3x3 = BufferUtils.createFloatBuffer(9);
 
 
     public BaseShaderProgram (String vsh, String fsh) {
@@ -24,12 +30,13 @@ public abstract class BaseShaderProgram {
         getAllUniformLocations();
     }
 
-
-
-
     protected abstract void bindAttribs();
 
     protected abstract void getAllUniformLocations();
+
+    protected int getUniformLocation(String uniformName) {
+        return glGetUniformLocation(programId, uniformName);
+    }
 
     protected void bindAttrib(int attribId, String attribName) {
         glBindAttribLocation(programId, attribId, attribName);
@@ -54,6 +61,46 @@ public abstract class BaseShaderProgram {
     }
 
 
+    public void setFloat(int location, float value) {
+        glUniform1f(location, value);
+    }
+
+    public void setInt(int location, int value) {
+        glUniform1i(location, value);
+    }
+
+    public void setBoolean(int location, boolean value) {
+        float toLoad = 0;
+        if (value) {
+            toLoad = 1;
+        }
+        glUniform1f(location, toLoad);
+    }
+
+    public void setVec2f(int location, Vector2f vec2) {
+        glUniform2f(location, vec2.x, vec2.y);
+    }
+
+    public void setVec3f(int location, Vector3f vec3) {
+        glUniform3f(location, vec3.x, vec3.y, vec3.z);
+    }
+
+    public void setVec4f(int location, Vector4f vec4) {
+        glUniform4f(location, vec4.x, vec4.y, vec4.z, vec4.w);
+    }
+
+    public void setMat4f(int location, Matrix4f mat4) {
+        mat4.store(mb4x4); //In LWJGL 3 this should be replaced by .get();
+        mb4x4.flip(); //In LWJGL 3 this line should be removed
+        glUniformMatrix4(location, false, mb4x4);
+    }
+
+
+    public void setMat3f(int location, Matrix3f mat3) {
+        mat3.store(mb3x3);//In LWJGL 3 this should be replaced by .get();
+        mb3x3.flip();//In LWJGL 3 this line should be removed
+        glUniformMatrix4(location, false, mb3x3);
+    }
 
     public int loadShader(String shaderPath, int shaderType) {
         StringBuilder sb = new StringBuilder();
