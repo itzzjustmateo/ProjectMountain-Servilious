@@ -12,9 +12,9 @@ public class DisplayManager {
     private int height = 640;
 
     public void createDisplay() {
-        ContextAttribs attribs = new ContextAttribs(3, 2).withProfileCore(true).withForwardCompatible(true);
+        ContextAttribs attribs = new ContextAttribs(3, 3).withProfileCore(true).withForwardCompatible(true);
         try {
-            System.out.println("A");
+            System.out.println("Creating Display..");
             Display.setTitle(title);
             Display.setDisplayMode(new DisplayMode(width, height));
             Display.create(new PixelFormat(), attribs);
