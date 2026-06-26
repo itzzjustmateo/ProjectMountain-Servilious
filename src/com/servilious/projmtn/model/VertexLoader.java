@@ -17,11 +17,12 @@ public class VertexLoader {
     private List<Integer> vbos = new ArrayList<>();
 
 
-    public BaseModel sendToVao(float[] positions) {
+    public BaseModel sendToVao(float[] positions, int indices[]) {
         int vaoID = createVAO();
+        setupEBO(indices);
         setupVBOs(0, 3, positions);
         unbindVAO();
-        return new BaseModel(vaoID, positions.length / 3);
+        return new BaseModel(vaoID, positions.length / indices.length);
     }
 
     private int createVAO() {

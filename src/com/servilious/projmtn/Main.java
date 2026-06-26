@@ -20,12 +20,12 @@ public class Main {
             0.0f, 0.5f, 0.0f,
         };
 
-//        int indices[] = {
-//            0, 1, 2, 2, 3, 0
-//        };
+        int indices[] = {
+            0, 1, 2
+        };
         Renderer renderer = new Renderer();
         VertexLoader loader = new VertexLoader();
-        BaseModel model = loader.sendToVao(positions);
+        BaseModel model = loader.sendToVao(positions, indices);
         System.out.println(model.getVerticesCount());
 
         while (!display.isDestroyed()) {

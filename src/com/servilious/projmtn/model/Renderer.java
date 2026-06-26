@@ -17,8 +17,8 @@ public class Renderer {
     public void render(BaseModel model) {
         glBindVertexArray(model.getVaoID());
         glEnableVertexAttribArray(0);
-        glDrawArrays(GL_TRIANGLES, 0, model.getVerticesCount());
-   //     glDrawElements(GL_TRIANGLES,  model.getVerticesCount(), GL_UNSIGNED_INT, 0);
+   //     glDrawArrays(GL_TRIANGLES, 0, model.getVerticesCount());
+        glDrawElements(GL_TRIANGLES,  model.getVerticesCount(), GL_UNSIGNED_INT, 0);
         glDisableVertexAttribArray(0);
         glBindVertexArray(0);
     }
