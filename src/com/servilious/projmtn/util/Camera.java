@@ -21,7 +21,10 @@ public class Camera {
         }
         if (Keyboard.isKeyDown(Keyboard.KEY_D)) {
             position.x += movSpd;
+
         }
+
+
 
         if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
             position.y += (movSpd * 2);
@@ -29,6 +32,8 @@ public class Camera {
         if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
             position.y -= (movSpd * 2);
         }
+
+
 
         if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
             yaw -= camSpd;
