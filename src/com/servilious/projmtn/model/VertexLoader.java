@@ -20,9 +20,10 @@ public class VertexLoader {
     public BaseModel sendToVao(float[] positions, int indices[]) {
         int vaoID = createVAO();
         setupEBO(indices);
+
         setupVBOs(0, 3, positions);
         unbindVAO();
-        return new BaseModel(vaoID, positions.length / indices.length);
+        return new BaseModel(vaoID, indices.length);
     }
 
     private int createVAO() {
@@ -32,11 +33,13 @@ public class VertexLoader {
         return vaoID;
     }
 
-    private void setupVBOs(int attribId, int vecSize, float vertices[]) {
+    private void setupVBOs(int attribId, int vecSize, float data[]) {
         int vboID = glGenBuffers();
         vbos.add(vboID);
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        FloatBuffer fb = storeToFB(vertices);
+        FloatBuffer fb = BufferUtils.createFloatBuffer(data.length);
+        fb.put(data);
+        fb.flip(); // storeToFB(vertices);
         glBufferData(GL_ARRAY_BUFFER, fb, GL_STATIC_DRAW);
 
         glVertexAttribPointer(attribId, vecSize, GL_FLOAT, false,0, 0);
