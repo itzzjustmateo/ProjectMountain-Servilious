@@ -1,33 +1,48 @@
 package com.servilious.projmtn.util;
 
+import com.servilious.projmtn.renderer.Camera;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
 public class MathHelper {
-    private static Vector3f rotX = new Vector3f(1, 0, 0);
-    private static Vector3f rotY = new Vector3f(0, 1, 0);
-    private static Vector3f rotZ = new Vector3f(0, 0, 1);
 
-
-    public static Matrix4f setupTransformation(Vector3f m_Position, float m_RotX, float m_RotY, float m_RotZ, float m_Scale) { //m_ = model so m_Position is a shorter version of modelPosition
-        Matrix4f transform = new Matrix4f();
-        transform.setIdentity();
-        Matrix4f.translate(m_Position, transform, transform);
-        Matrix4f.rotate((float) Math.toRadians(m_RotX), rotX, transform, transform);
-        Matrix4f.rotate((float) Math.toRadians(m_RotY), rotY, transform, transform);
-        Matrix4f.rotate((float) Math.toRadians(m_RotZ), rotZ, transform, transform);
-        Matrix4f.scale(new Vector3f(m_Scale, m_Scale, m_Scale), transform, transform);
-        return transform;
+    public static float barryCentric(Vector3f p1, Vector3f p2, Vector3f p3, Vector2f pos) {
+        float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
+        float l1 = ((p2.z - p3.z) * (pos.x - p3.x) + (p3.x - p2.x) * (pos.y - p3.z)) / det;
+        float l2 = ((p3.z - p1.z) * (pos.x - p3.x) + (p1.x - p3.x) * (pos.y - p3.z)) / det;
+        float l3 = 1.0F - l1 - l2;
+        return l1 * p1.y + l2 * p2.y + l3 * p3.y;
     }
 
-    public static Matrix4f setupView(Camera camera) {
-        Matrix4f view = new Matrix4f();
-        view.setIdentity();
-        Matrix4f.invert(Matrix4f.rotate((float) Math.toRadians(camera.getPitch()), new Vector3f(1, 0, 0), view, view), view)  ;
-        Matrix4f.rotate((float) Math.toRadians(camera.getYaw()), new Vector3f(0, 1, 0), view, view);
-        Vector3f camPos = camera.getPos();
-        Vector3f negCamPos = new Vector3f(-camPos.x, -camPos.y, -camPos.z);
-        Matrix4f.translate(negCamPos, view, view);
-        return view;
+
+    public static Matrix4f setupTransformationMatrix(Vector2f trans, Vector2f scale) {
+        Matrix4f mat4f = new Matrix4f();
+        mat4f.setIdentity();
+        Matrix4f.translate(trans, mat4f, mat4f);
+        Matrix4f.scale(new Vector3f(scale.x, scale.y, 1f), mat4f, mat4f);
+        return mat4f;
+    }
+
+    public static Matrix4f setupTransformationMatrix(Vector3f trans, float rx, float ry, float rz, float scale) {
+        Matrix4f mat4f = new Matrix4f();
+        mat4f.setIdentity();
+        Matrix4f.translate(trans, mat4f, mat4f);
+        Matrix4f.rotate((float) Math.toRadians(rx), new Vector3f(1, 0, 0), mat4f, mat4f);
+        Matrix4f.rotate((float) Math.toRadians(ry), new Vector3f(0, 1, 0), mat4f, mat4f);
+        Matrix4f.rotate((float) Math.toRadians(rz), new Vector3f(0, 0, 1), mat4f, mat4f);
+        Matrix4f.scale(new Vector3f(scale, scale, scale), mat4f, mat4f);
+        return mat4f;
+    }
+
+    public static Matrix4f createViewMatrix(Camera camera) {
+        Matrix4f viewMatrix = new Matrix4f();
+        viewMatrix.setIdentity();
+        Matrix4f.rotate((float) Math.toRadians(camera.getPitch()), new Vector3f(1,0,0),viewMatrix, viewMatrix);
+        Matrix4f.rotate((float) Math.toRadians(camera.getYaw()), new Vector3f(0,1,0),viewMatrix, viewMatrix);
+        Vector3f cameraPos = camera.getPos();
+        Vector3f negativeCameraPos = new Vector3f(-cameraPos.x, -cameraPos.y, -cameraPos.z);
+        Matrix4f.translate(negativeCameraPos, viewMatrix, viewMatrix);
+        return viewMatrix;
     }
 }
