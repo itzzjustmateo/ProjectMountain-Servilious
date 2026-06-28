@@ -23,17 +23,20 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
+import org.newdawn.slick.TrueTypeFont;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Game {
-    //*Constants *//
+    //* Constants *//
     private static boolean isDevMode = false;
     private static boolean fullscreenEnabled = false;
     private static List<Model>allTrees;
     private static Random rand = new Random();
+    private static boolean isPaused = false;
 
 
     public static void main(String[] args) {
@@ -54,9 +57,9 @@ public class Game {
 
         TerrainTexture bgTex = new TerrainTexture(loader.loadTexture("grass"));
         TerrainTexture rTex = new TerrainTexture(loader.loadTexture("dirt"));
-        TerrainTexture gTex = new TerrainTexture(loader.loadTexture("grass_flower"));
-        TerrainTexture bTex = new TerrainTexture(loader.loadTexture("stonepath"));
-        TerrainTexture blendMap = new TerrainTexture(loader.loadTexture("map/blend_map1"));
+        TerrainTexture gTex = new TerrainTexture(loader.loadTexture("rockpath"));
+        TerrainTexture bTex = new TerrainTexture(loader.loadTexture("rockpath"));
+        TerrainTexture blendMap = new TerrainTexture(loader.loadTexture("map/blend_mtn_map"));
 
         TerrainTexturePack terrainTexture = new TerrainTexturePack(bgTex, rTex, gTex, bTex);
 
@@ -109,24 +112,27 @@ public class Game {
         lampModelTex.setShineFactor(10);
         lampModelTex.setReflectivity(1000);
 
-        Terrain quad1m1 = new Terrain(1,-1, loader, terrainTexture, blendMap, "heightmap_5");//negative quad positive X: 0, negative Z: 1
-        Terrain quadm1p1 = new Terrain(-1,1, loader, terrainTexture, blendMap, "heightmap_7");//negative quad X: 1, Z: positive 1
-        Terrain mQuad01 = new Terrain(-0,-1, loader, terrainTexture, blendMap, "heightmap_1"); //negative quad X: 0, Z: 1
-        Terrain mQuad10 = new Terrain(-1,-0, loader, terrainTexture, blendMap, "heightmap_4"); //negative quad X: 1, Z: 0
-        Terrain mQuad11 = new Terrain(-1,-1, loader, terrainTexture, blendMap, "heightmap_8"); //negative quad X: 1, Z: 1
+        Terrain terArrX[] = new Terrain[8];
+        Terrain terArrY[] = new Terrain[4];
 
-        Terrain quad00 = new Terrain(0,0, loader, terrainTexture, blendMap, "flatmap"); //positive quad X: 0, Z: 0
-        Terrain quad01 = new Terrain(0,1, loader, terrainTexture, blendMap, "heightmap_3");//positive quad X: 0, Z: 1
-        Terrain quad10 = new Terrain(1,0, loader, terrainTexture, blendMap, "heightmap_2"); //positive quad X: 1, Z: 0
-        Terrain quad11 = new Terrain(1,1, loader, terrainTexture, blendMap, "heightmap_6"); //positive quad X: 1, Z: 1
 
+     terArrX[0] = new Terrain(1,-1, loader, terrainTexture, blendMap, "heightmap_5");//negative quad positive X: 0, negative Z: 1
+     terArrX[1] = new Terrain(-1,1, loader, terrainTexture, blendMap, "heightmap_7");//negative quad X: 1, Z: positive 1
+     terArrX[2] = new Terrain(-0,-1, loader, terrainTexture, blendMap, "heightmap_1"); //negative quad X: 0, Z: 1
+     terArrX[3] = new Terrain(-1,-0, loader, terrainTexture, blendMap, "heightmap_4"); //negative quad X: 1, Z: 0
+     terArrX[4] = new Terrain(-1,-1, loader, terrainTexture, blendMap, "heightmap_8"); //negative quad X: 1, Z: 1
+
+     terArrX[5] = new Terrain(0,0, loader, terrainTexture, blendMap, "flatmap"); //positive quad X: 0, Z: 0
+     terArrX[6] = new Terrain(0,1, loader, terrainTexture, blendMap, "hillymap_1");//positive quad X: 0, Z: 1
+     terArrX[7] = new Terrain(1,0, loader, terrainTexture, blendMap, "reactormap"); //positive quad X: 1, Z: 0
 
         for (int x = 0; x < 768; x++) {
           float xRand = (float) (rand.nextFloat() * x - 30 % 5 + Math.floorMod(90, 190) / 24 % 6 * Math.cos(75) + Math.sin(80) * 3) % 20 / 3 + x % 29 + (50 / 2 + Math.abs(x) % 2 * 10 / 2 +(float) Math.floor(x) / 2 % 3 * 90)  ; //idek bro
               float zRand = (float) ((float) rand.nextFloat() * x % 30 / 5 % 4 / 24 / 2 % 5 * 2 * Math.sin(75) + (Math.cos(90) * 3) / 2 % 8 * 2 + x + Math.pow(x, xRand) % 5 * 10 / 5 + 5 + Math.floor(x) / 2 / 3 % 1 / 1000);
-              float y = quad00.getHeightOfTerrain(xRand, zRand);
+              float y = terArrX[0].getHeightOfTerrain(xRand, zRand);
               allTrees.add(new Model(texturedModel, new Vector3f(xRand, y, zRand), 0, 0, 0, 1));
         }
+
 
         Light light = new Light(new Vector3f(200000, 1000000, 200000), new Vector3f(1f, 1f, 1f));
         List<Light> lights = new ArrayList<Light>();
@@ -136,46 +142,36 @@ public class Game {
 
 
         Mouse.setGrabbed(true);
-        Mouse.setCursorPosition(GameWindowManager.width / 2, GameWindowManager.height / 2);
+        Mouse.setCursorPosition(Display.getDisplayMode().getWidth() / 2, Display.getDisplayMode().getHeight() / 2);
 
 
         Camera camera = new Camera(modelPlayer);
         MasterRenderer renderer = new MasterRenderer(loader);
 
         List<GuiTexture> guiTextures = new ArrayList<GuiTexture>();
-        GuiTexture hud = new GuiTexture(loader.loadTexture("gui/hud"), new Vector2f(0.05F, -0.4F), new Vector2f(0.5f, 0.5F));
-        GuiTexture hpBar = new GuiTexture(loader.loadTexture("gui/healthbar"), new Vector2f(0.03F, -0.12F), new Vector2f(0.5f, 0.5F));
+        GuiTexture hudGear = new GuiTexture(loader.loadTexture("gui/HUD_GearGUI"), new Vector2f(0.82F, -0.12F), new Vector2f(0.15f, 0.5F));
+        GuiTexture hudBarHP = new GuiTexture(loader.loadTexture("gui/HUD_EmptyBarGUI"), new Vector2f(0.04F, -0.75F), new Vector2f(0.45f, 0.065f));
+        GuiTexture hudBarStamina = new GuiTexture(loader.loadTexture("gui/HUD_EmptyBarGUI"), new Vector2f(0.04F, -0.90f), new Vector2f(0.45f, 0.065f));
+        GuiTexture hudMinimapSlot = new GuiTexture(loader.loadTexture("gui/HUD_MiniMapSlotGUI"), new Vector2f(-0.745F, -0.6f), new Vector2f(0.25f, 0.35f));
+        GuiTexture guiButton = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, 0), new Vector2f(0.25f, 0.35f));
 
-        //guiTextures.add(hud);
-       // guiTextures.add(hpBar);
-
+        guiTextures.add(hudGear);
+        guiTextures.add(hudBarHP);
+        guiTextures.add(hudBarStamina);
+        guiTextures.add(hudMinimapSlot);
         GuiRenderer guiRenderer = new GuiRenderer(loader);
 
-        MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), quad00);
+        MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terArrX[5]);
+
+
 
         while (!Display.isCloseRequested()) {
             camera.move(isDevMode);
 
-            modelPlayer.move(quad00, isDevMode);
-            picker.tick();
-            Vector3f terrainPointer = picker.getCurrentRay();
-            ///code to move lamp around using mouse position
-         //   if (terrainPointer != null) {
-         //       lampModel.setPos(terrainPointer);
-          //      light.setPos(new Vector3f(terrainPointer.x, terrainPointer.y + 10, terrainPointer.z));
-          //  }
 
-//            System.out.println(picker.getCurrentRay());
-
-            renderer.processTerrain(mQuad11);
-            renderer.processTerrain(mQuad10);
-            renderer.processTerrain(mQuad01);
-            renderer.processTerrain(quad1m1);
-            renderer.processTerrain(quadm1p1);
-            renderer.processTerrain(quad00);
-            renderer.processTerrain(quad01);
-            renderer.processTerrain(quad10);
-            renderer.processTerrain(quad11);
+            for (int i = 0; i < terArrX.length; i++) {
+                renderer.processTerrain(terArrX[i]);
+            }
 
             renderer.processModel(model2);
             renderer.processModel(modelPlayer);
@@ -185,8 +181,7 @@ public class Game {
                 renderer.processModel(model1);
             }
             renderer.render(lights, camera);
-            guiRenderer.render(guiTextures);
-            windowManager.updateWindow();
+            guiRenderer.renderGUIs(guiTextures);
 
 
             /*
@@ -202,12 +197,19 @@ public class Game {
                 GameWindowManager.unFullscreenWindow(fullscreenEnabled);
             }
 
-            if(Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {//if the key escape is down un grab the mouse
+            if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE) && !isPaused) {//if the key escape is down un grab the mouse
+                isPaused = true;
+                if (isPaused) {
+                    guiRenderer.renderGUI(guiButton);
+                }
                 Mouse.setGrabbed(false);
+
             }
             if(Mouse.isButtonDown(0)) {
+                isPaused = false;
                 Mouse.setGrabbed(true);
             }
+            windowManager.updateWindow();
         }
         guiRenderer.clear();
         renderer.clear();
@@ -215,3 +217,47 @@ public class Game {
         windowManager.destroyWindow();
     }
 }
+
+
+///unused code
+//        Terrain quad1m1 = new Terrain(1,-1, loader, terrainTexture, blendMap, "heightmap_5");//negative quad positive X: 0, negative Z: 1
+//        Terrain quadm1p1 = new Terrain(-1,1, loader, terrainTexture, blendMap, "heightmap_7");//negative quad X: 1, Z: positive 1
+//        Terrain mQuad01 = new Terrain(-0,-1, loader, terrainTexture, blendMap, "heightmap_1"); //negative quad X: 0, Z: 1
+//        Terrain mQuad10 = new Terrain(-1,-0, loader, terrainTexture, blendMap, "heightmap_4"); //negative quad X: 1, Z: 0
+//        Terrain mQuad11 = new Terrain(-1,-1, loader, terrainTexture, blendMap, "heightmap_8"); //negative quad X: 1, Z: 1
+//
+//        Terrain quad00 = new Terrain(0,0, loader, terrainTexture, blendMap, "flatmap"); //positive quad X: 0, Z: 0
+//        Terrain quad01 = new Terrain(0,1, loader, terrainTexture, blendMap, "hillymap_1");//positive quad X: 0, Z: 1
+//        Terrain quad10 = new Terrain(1,0, loader, terrainTexture, blendMap, "reactormap"); //positive quad X: 1, Z: 0
+//        Terrain quad11 = new Terrain(1,1, loader, terrainTexture, blendMap, "hillymap_0"); //positive quad X: 1, Z: 1
+/*
+            //modelPlayer.move(quad00, isDevMode);
+
+    //        picker.tick();
+         //   Vector3f terrainPointer = picker.getCurrentRay();
+            ///code to move lamp around using mouse position
+//            if (terrainPointer != null) {
+//                lampModel.setPos(terrainPointer);
+//                light.setPos(new Vector3f(terrainPointer.x, terrainPointer.y + 10, terrainPointer.z));
+//            }
+
+      //      System.out.println(picker.getCurrentRay());
+
+
+        //    ttf.drawString(100, 100, "Hello World");
+
+//            renderer.processTerrain(mQuad11);
+//            renderer.processTerrain(mQuad10);
+//            renderer.processTerrain(mQuad01);
+//            renderer.processTerrain(quad1m1);
+//            renderer.processTerrain(quadm1p1);
+//            renderer.processTerrain(quad00);
+//            renderer.processTerrain(quad01);
+//            renderer.processTerrain(quad10);
+//            renderer.processTerrain(quad11);
+
+//                for (int j = 0; j < terArrY.length; j++) {
+//                    renderer.processTerrain(terArrY[j]);
+//                }
+
+ */

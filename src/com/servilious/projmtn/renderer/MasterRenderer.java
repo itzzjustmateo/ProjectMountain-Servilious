@@ -20,7 +20,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class MasterRenderer {
     private static final float FOV = 70;
     private static final float NEAR_PLANE = 0.1F;
-    private static final float FAR_PLANE = 2000.0F;
+    private static final float FAR_PLANE = 2000.0f;
     private static final float VALUE_RED = 0.5F;
     private static final float VALUE_GREEN = 0.8F;
     private static final float VALUE_BLUE = 1.0F;

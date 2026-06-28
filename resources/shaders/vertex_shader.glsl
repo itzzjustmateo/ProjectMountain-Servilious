@@ -1,8 +1,8 @@
 #version 400 core
 
-in vec3 position;
-in vec2 texCoords;
-in vec3 normal;
+layout (location = 0) in vec3 v_Pos;
+layout (location = 1) in vec2 v_TexCoords;
+layout (location = 2) in vec3 v_Normal;
 
 out vec2 pass_texCoords;
 out vec3 surfaceNormal;
@@ -26,12 +26,12 @@ const float density = 0;
 const float gradient = 10;
 
 void main(void) {
-   vec4 worldPos = transformationMatrix * vec4(position, 1.0);
+   vec4 worldPos = transformationMatrix * vec4(v_Pos, 1.0);
    vec4 posRelativeToCam = viewMatrix * worldPos;
    gl_Position = projectionMatrix * posRelativeToCam;
-   pass_texCoords = (texCoords / numOfRows) + offset;
+   pass_texCoords = (v_TexCoords / numOfRows) + offset;
 
-   vec3 realNormal = normal;
+   vec3 realNormal = v_Normal;
    if(useFakeLighting > 0.5) {
       realNormal = vec3(0.0, 1.0, 0.0);
    }
