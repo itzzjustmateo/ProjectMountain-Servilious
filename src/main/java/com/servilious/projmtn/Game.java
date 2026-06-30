@@ -85,7 +85,7 @@ public class Game {
         BaseModel playerModel = loader.loadToVAO(player.getVertices(), player.getTexCoords(), player.getNormals(), player.getIndices());
         BaseModel lampPostModel = loader.loadToVAO(lampPost.getVertices(), lampPost.getTexCoords(), lampPost.getNormals(), lampPost.getIndices());
 
-        ModelTexture modelTex = new ModelTexture(loader.loadTexture("tree/TreeTexture"));
+        ModelTexture modelTex = new ModelTexture(loader.loadTexture("tree/BaseTree"));
         ModelTexture modelTex1 = new ModelTexture(loader.loadTexture("plant/plantGrassShort"));
         modelTex1.setNumOfRows(2);
         ModelTexture playerModelTex = new ModelTexture(loader.loadTexture("entity/player/player"));
@@ -126,7 +126,7 @@ public class Game {
         Terrain terArrX[] = new Terrain[9];
 
 
-        terArrX[0] = new Terrain(1,-1, loader, terrainTexture, blendMap, "flatmap");//negative quad positive X: 0, negative Z: 1
+        terArrX[0] = new Terrain(1,-1, loader, terrainTexture, blendMap, "hillymap_4");//negative quad positive X: 0, negative Z: 1
         terArrX[1] = new Terrain(-1,1, loader, terrainTexture, blendMap, "flatmap");//negative quad X: 1, Z: positive 1
         terArrX[2] = new Terrain(-0,-1, loader, terrainTexture, blendMap, "flatmap"); //negative quad X: 0, Z: 1
         terArrX[3] = new Terrain(-1,-0, loader, terrainTexture, blendMap, "flatmap"); //negative quad X: 1, Z: 0
@@ -136,8 +136,6 @@ public class Game {
         terArrX[6] = new Terrain(0,1, loader, terrainTexture, blendMap, "flatmap");//positive quad X: 0, Z: 1
         terArrX[7] = new Terrain(1,0, loader, terrainTexture, blendMap, "flatmap"); //positive quad X: 1, Z: 0
         terArrX[8] = new Terrain(1,1, loader, terrainTexture, blendMap, "flatmap"); //positive quad X: 1, Z: 0
-
-
 
 //        terArrX[0] = new Terrain(1,-1, loader, terrainTexture, blendMap, "heightmap_5");//negative quad positive X: 0, n
 //        terArrX[1] = new Terrain(-1,1, loader, terrainTexture, blendMap, "heightmap_7");//negative quad X: 1, Z: positiv
@@ -165,8 +163,6 @@ public class Game {
 
 
         glfwSetCursorPos(windowManager.getWindow(), glfwGetVideoMode(glfwGetPrimaryMonitor()).width() / 2,glfwGetVideoMode(glfwGetPrimaryMonitor()).height() / 2);
-    //    Mouse.setCursorPosition(Display.getDisplayMode().getWidth() / 2, Display.getDisplayMode().getHeight() / 2);
-
 
         Camera camera = new Camera(modelPlayer);
         MasterRenderer renderer = new MasterRenderer(loader, windowManager);
@@ -187,7 +183,7 @@ public class Game {
 
         glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        boolean isMainMenu = true;
+        boolean isMainMenu = false; //Testing purposes only
 
         while (!windowManager.shouldDestroy()) {
             if (glfwGetKey(windowManager.getWindow(), GLFW_KEY_ENTER) == GLFW_PRESS) {
@@ -198,12 +194,14 @@ public class Game {
                 implGl3.newFrame();
                 implGlfw.newFrame();
                 ImGui.newFrame();
-                ImGui.begin("Hello World");
-                camera.move(isDevMode, windowManager);
-                ImGui.setWindowSize(new ImVec2(200, 200));
-                ImGui.textColored(255, 255, 0, 255, "Player XYZ :" + camera.getPos().x + ", " + camera.getPos().y + ", " + camera.getPos().z);
+                if (!isPaused) {
+                    ImGui.begin("Hello World");
+                    camera.move(isDevMode, windowManager);
+                    ImGui.setWindowSize(new ImVec2(300, 200));
+                    ImGui.textColored(255, 255, 0, 255, "Player XYZ :" + camera.getPos().x + ", " + camera.getPos().y + ", " + camera.getPos().z);
+                    ImGui.end();
+                }
 
-                ImGui.end();
 
                 for (int i = 0; i < terArrX.length; i++) {
                     modelPlayer.move(terArrX[i], isDevMode);
@@ -213,8 +211,10 @@ public class Game {
                 renderer.processModel(modelPlayer);
                 renderer.processModel(lampModel);
 
-                for (Model model1 : allTrees) {
-                    renderer.processModel(model1);
+                for (Model tree : allTrees) {
+                    MasterRenderer.disableCulling();
+                    renderer.processModel(tree);
+                    MasterRenderer.enableCulling();
                 }
                 renderer.render(lights, camera);
 

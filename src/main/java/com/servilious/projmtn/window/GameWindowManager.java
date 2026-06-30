@@ -1,6 +1,10 @@
 package com.servilious.projmtn.window;
 
+import com.servilious.projmtn.GlobalConstants;
+import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.stb.STBImage;
+
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFWErrorCallback.*;
 
@@ -41,6 +45,15 @@ public class GameWindowManager {
         } else {
             glfwSetWindowMonitor(window, 0L, 1920 / 2 - 450, 1080 / 2 - 300, width, height, glfwGetVideoMode(glfwGetPrimaryMonitor()).refreshRate());
         }
+//
+    //     int w[] = new int[1], h[]= new int[1], a[]= new int[1];
+    //    GLFWImage.Buffer buf = GLFWImage.create(1);
+     //   GLFWImage icon256 = GLFWImage.create().set(w[0], h[0],STBImage.stbi_load(GlobalConstants.getResourcePath() + "/textures/icon/icon256.png", w, h, a, 4));
+      //  icon256 = new GLFWImage(STBImage.stbi_load(GlobalConstants.getResourcePath() + "/textures/icon/icon256.png", w, h, a, 4));
+    //    buf.put(icon256);
+     //   icon256.free();
+
+    //    glfwSetWindowIcon(window, buf);
     }
 
     public void updateWindow() {

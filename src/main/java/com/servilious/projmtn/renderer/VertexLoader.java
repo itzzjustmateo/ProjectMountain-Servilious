@@ -21,7 +21,7 @@ public class VertexLoader {
     private List<Integer> vbos = new ArrayList<Integer>();
     private List<Integer> textures = new ArrayList<Integer>();
 
-    public BaseModel loadToVAO(float[] positions, float[] texCoords, float[] normals, int[] indices) {
+    public BaseModel loadToVAO(float[] positions, float[] texCoords, float[] normals, int[] indices) { //This is to load General Models / vertices
         int vaoId = createVAO();
         bindIndicesBuffer(indices);
         storeDataInAttributeList(0, 3, positions);
@@ -31,14 +31,14 @@ public class VertexLoader {
         return new BaseModel(vaoId, indices.length);
     }
 
-    public BaseModel loadToVAO(float[] positions, int dimensions) {
+    public BaseModel loadToVAO(float[] positions, int dimensions) {//This is for GUI
         int vaoId = createVAO();
         this.storeDataInAttributeList(0, dimensions, positions);
         unbindVAO();
         return new BaseModel(vaoId, positions.length / dimensions);
     }
 
-    public BaseModel loadToVAO(float[] positions, float texCoords[], int dimensions) {
+    public BaseModel loadToVAO(float[] positions, float texCoords[], int dimensions) { //This is for GUI
         int vaoId = createVAO();
         this.storeDataInAttributeList(0, dimensions, positions);
         this.storeDataInAttributeList(1, dimensions, texCoords);
@@ -81,30 +81,8 @@ public class VertexLoader {
         return texId;
     }
 
-//    private TextureData decodeTexFile(String fileName) {
-//        int width = 0;
-//        int height = 0;
-//        ByteBuffer data = null;
-//        try {
-//
-//
-////            FileInputStream fis = new FileInputStream(fileName);
-////            PNGDecoder decoder = new PNGDecoder(fis);
-////            width = decoder.getWidth();
-////            height = decoder.getHeight();
-////            buf = ByteBuffer.allocateDirect(4 * width * height);
-////            decoder.decode(buf, width * 4, Format.RGBA);
-////            buf.flip();
-////            fis.close();
-//        } catch (Exception e) {
-//            System.err.println("[ERROR-8:1] Failed to Decode File, Something has went Wrong!");
-//            e.printStackTrace();
-//            System.exit(-8);
-//        }
-//        return new TextureData(width, height, data);
-//    }
 
-    public int loadCubemap(String[] cubeMapTextures) {
+    public int loadCubemap(String[] cubeMapTextures) { //Doesn't work properly yet
         int texId = glGenTextures();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, texId);
