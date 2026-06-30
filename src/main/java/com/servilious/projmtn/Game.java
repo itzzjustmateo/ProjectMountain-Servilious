@@ -153,13 +153,9 @@ public class Game {
             float y = terArrX[0].getHeightOfTerrain(randX, randZ);
             allTrees.add(new Model(texturedModel, new Vector3f(250 - randX, y,300 - randZ), 0, 0, 0, 1));
         }
+        float x = 200000;
 
 
-        Light light = new Light(new Vector3f(200000, 1000000, 200000), new Vector3f(1f, 1f, 1f));
-        List<Light> lights = new ArrayList<Light>();
-        lights.add(light);
-        lights.add(new Light(new Vector3f(0, 1000, -7000), new Vector3f(0.4f, 0.4f, 0.4f)));
-        lights.add(new Light(new Vector3f(185, 10, -293), new Vector3f(0, 2, 2), new Vector3f(1, 0.01f, 0.002f)));
 
 
         glfwSetCursorPos(windowManager.getWindow(), glfwGetVideoMode(glfwGetPrimaryMonitor()).width() / 2,glfwGetVideoMode(glfwGetPrimaryMonitor()).height() / 2);
@@ -172,7 +168,8 @@ public class Game {
         GuiTexture hudBarHP = new GuiTexture(loader.loadTexture("gui/HUD_EmptyBarGUI"), new Vector2f(0.04F, -0.75F), new Vector2f(0.45f, 0.065f));
         GuiTexture hudBarStamina = new GuiTexture(loader.loadTexture("gui/HUD_EmptyBarGUI"), new Vector2f(0.04F, -0.90f), new Vector2f(0.45f, 0.065f));
         GuiTexture hudMinimapSlot = new GuiTexture(loader.loadTexture("gui/HUD_MiniMapSlotGUI"), new Vector2f(-0.745F, -0.6f), new Vector2f(0.25f, 0.35f));
-        GuiTexture guiButton = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, 0), new Vector2f(0.25f, 0.35f));
+     //   GuiTexture guiButton = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, 0), new Vector2f(0.25f, 0.35f));
+        GuiTexture guiButton = new GuiTexture(loader.loadTexture("logo/logo"), new Vector2f(0, 0), new Vector2f(0.25f, 0.35f));
 
         guiTextures.add(hudGear);
         guiTextures.add(hudBarHP);
@@ -216,11 +213,16 @@ public class Game {
                     renderer.processModel(tree);
                     MasterRenderer.enableCulling();
                 }
+                Light light = new Light(new Vector3f(x, 1000000, 200000), new Vector3f(1f, 1f, 1f));
+                List<Light> lights = new ArrayList<Light>();
+                lights.add(light);
+                lights.add(new Light(new Vector3f(0, 1000, -7000), new Vector3f(0.4f, 0.4f, 0.4f)));
+                lights.add(new Light(new Vector3f(185, 10, -293), new Vector3f(0, 2, 2), new Vector3f(1, 0.01f, 0.002f)));
+
                 renderer.render(lights, camera);
 
                 if (glfwGetKey(windowManager.getWindow(), GLFW_KEY_F1) != GLFW_PRESS) {
                     guiRenderer.renderGUIs(guiTextures);
-                    //  fontRenderer.renderFont(guiFont);
                 }
 
                 if (glfwGetKey(windowManager.getWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS && !isPaused) {//if the key escape is down un grab the mouse
