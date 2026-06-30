@@ -36,20 +36,20 @@ public abstract class BaseShaderProgram {
         return glGetUniformLocation(programID, location);
     }
 
-    public void bindAttrib(int attribId, String attribName) {
+    protected void bindAttrib(int attribId, String attribName) {
         glBindAttribLocation(programID, attribId, attribName);
     }
 
 
-    protected void setInt(int location, int value) {
+    public void setInt(int location, int value) {
         glUniform1i(location, value);
     }
 
-    protected void setFloat(int location, float value) {
+    public void setFloat(int location, float value) {
         glUniform1f(location, value);
     }
 
-    protected void setBoolean(int location, boolean value) {
+    public void setBoolean(int location, boolean value) {
         float toLoad = 0;
         if (value) {
             toLoad = 1;
@@ -58,15 +58,15 @@ public abstract class BaseShaderProgram {
     }
 
 
-    protected void setVec2(int location, Vector2f vec2) {
+    public void setVec2(int location, Vector2f vec2) {
         glUniform2f(location, vec2.x, vec2.y);
     }
 
-    protected void setVec3(int location, Vector3f vec3) {
+    public void setVec3(int location, Vector3f vec3) {
         glUniform3f(location, vec3.x, vec3.y, vec3.z);
     }
 
-    protected void setMat4(int location, Matrix4f mat4) {
+    public void setMat4(int location, Matrix4f mat4) {
         mat4.get(mb4x4);
         glUniformMatrix4fv(location, false, mb4x4);
     }

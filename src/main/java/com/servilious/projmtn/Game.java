@@ -1,9 +1,7 @@
 package com.servilious.projmtn;
 
+import com.servilious.projmtn.gui.*;
 import com.servilious.projmtn.gui.Font;
-import com.servilious.projmtn.gui.FontRenderer;
-import com.servilious.projmtn.gui.GuiRenderer;
-import com.servilious.projmtn.gui.GuiTexture;
 import com.servilious.projmtn.renderer.Camera;
 import com.servilious.projmtn.renderer.MasterRenderer;
 import com.servilious.projmtn.renderer.Player;
@@ -27,6 +25,7 @@ import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFWCursorPosCallback;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
 
 public class Game {
     //* Constants *//
@@ -162,32 +162,111 @@ public class Game {
 
         Camera camera = new Camera(modelPlayer);
         MasterRenderer renderer = new MasterRenderer(loader, windowManager);
-
+        float r = 1, g =1, b = 1;
         List<GuiTexture> guiTextures = new ArrayList<GuiTexture>();
-        GuiTexture hudGear = new GuiTexture(loader.loadTexture("gui/HUD_GearGUI"), new Vector2f(0.82F, -0.12F), new Vector2f(0.15f, 0.5F));
-        GuiTexture hudBarHP = new GuiTexture(loader.loadTexture("gui/HUD_EmptyBarGUI"), new Vector2f(0.04F, -0.75F), new Vector2f(0.45f, 0.065f));
-        GuiTexture hudBarStamina = new GuiTexture(loader.loadTexture("gui/HUD_EmptyBarGUI"), new Vector2f(0.04F, -0.90f), new Vector2f(0.45f, 0.065f));
-        GuiTexture hudMinimapSlot = new GuiTexture(loader.loadTexture("gui/HUD_MiniMapSlotGUI"), new Vector2f(-0.745F, -0.6f), new Vector2f(0.25f, 0.35f));
-     //   GuiTexture guiButton = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, 0), new Vector2f(0.25f, 0.35f));
-        GuiTexture guiButton = new GuiTexture(loader.loadTexture("logo/logo"), new Vector2f(0, 0), new Vector2f(0.25f, 0.35f));
+        List<GuiTexture> mainMenuGui = new ArrayList<GuiTexture>();
+        GuiTexture hudGear = new GuiTexture(loader.loadTexture("gui/HUD_GearGUI"), new Vector2f(0.82F, -0.12F), new Vector2f(0.15f, 0.5F), new Vector3f(1, 1, 1));
+        GuiTexture hudBarHP = new GuiTexture(loader.loadTexture("gui/HUD_EmptyBarGUI"), new Vector2f(0.04F, -0.75F), new Vector2f(0.45f, 0.065f), new Vector3f(1, 1, 1));
+        GuiTexture hudBarStamina = new GuiTexture(loader.loadTexture("gui/HUD_EmptyBarGUI"), new Vector2f(0.04F, -0.90f), new Vector2f(0.45f, 0.065f), new Vector3f(1, 1, 1));
+        GuiTexture hudMinimapSlot = new GuiTexture(loader.loadTexture("gui/HUD_MiniMapSlotGUI"), new Vector2f(-0.745F, -0.6f), new Vector2f(0.25f, 0.35f), new Vector3f(1, 1, 1));
+        GuiTexture guiButton[] = new GuiTexture[3];
+        guiButton[0] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, 0.25f), new Vector2f(0.35f, 0.15f), new Vector3f(r, g, b));
+        guiButton[1] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, -0.1f), new Vector2f(0.35f, 0.15f), new Vector3f(1, 1, 1));
+        guiButton[2] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, -0.45f), new Vector2f(0.35f, 0.15f), new Vector3f(1, 1, 1));
+     //   guiButton[3] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, -0.8f), new Vector2f(0.35f, 0.15f));
+        GuiTexture guiLogo = new GuiTexture(loader.loadTexture("logo/logo"), new Vector2f(-0.035f, 0.65f), new Vector2f(0.45f, 0.25f), new Vector3f(1, 1, 1));
+
+
 
         guiTextures.add(hudGear);
         guiTextures.add(hudBarHP);
         guiTextures.add(hudBarStamina);
         guiTextures.add(hudMinimapSlot);
 
+        mainMenuGui.add(guiLogo);
+        mainMenuGui.add(guiButton[0]);
+        mainMenuGui.add(guiButton[1]);
+        mainMenuGui.add(guiButton[2]);
+
+
         GuiRenderer guiRenderer = new GuiRenderer(loader);
 
-        glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        boolean isMainMenu = false; //Testing purposes only
 
+        boolean[] isMainMenu = {true}; //Testing purposes only
+        boolean[] firstTick = {false}; //Testing purposes only
+        GuiShader shader = new GuiShader();
+        int colorHl = shader.getUniformLocation("colorHL");
+        shader.setVec3(colorHl, new Vector3f(1,1 ,1));
         while (!windowManager.shouldDestroy()) {
-            if (glfwGetKey(windowManager.getWindow(), GLFW_KEY_ENTER) == GLFW_PRESS) {
-                isMainMenu = false;
+            if (isMainMenu[0]) {
+                firstTick[0] = false;
+                glDisable(GL_DEPTH_TEST);
+                glClear(GL_COLOR_BUFFER_BIT);
+                implGl3.newFrame();
+                implGlfw.newFrame();
+                ImGui.newFrame();
+                ImGui.begin("Main Menu Debug");
+                ImGui.setWindowSize(new ImVec2(200, 300));
+                float b0 = (float)  Math.clamp(Math.sin(glfwGetTime() % 1000), 0.0f, 1.0f);
+                glClearColor(0, 0, b0, 1.0f);
+
+                if (glfwGetKey(windowManager.getWindow(), GLFW_KEY_ENTER) == GLFW_PRESS && isMainMenu[0]) {
+                    glfwSetCursorPos(windowManager.getWindow(), GameWindowManager.getWidth() / 2, GameWindowManager.getHeight() / 2);
+                    glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                    glEnable(GL_DEPTH_TEST);
+                    isMainMenu[0] = false;
+
+                }
+                double[] xp = new double[1];
+                double[] xy = new double[1];
+                r = 0;
+                g = 0;
+                b = 0;
+
+
+                glfwSetCursorPosCallback(windowManager.getWindow(), new GLFWCursorPosCallback() {
+                    @Override
+                    public void invoke(long window, double xpos, double ypos) {
+                        xp[0] = xpos;
+                        xy[0] = ypos;
+                        if (xpos > 414 && ypos > 213 && ypos < 864 && ypos < 324) {
+                            if (glfwGetMouseButton(windowManager.getWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+                                isMainMenu[0] = false;
+                                firstTick[0] = true;
+                                System.out.println("Button Pressed");
+                            }
+                        }
+                    }
+                });
+
+                ImGui.text("X Pos: " + xp[0]);
+                ImGui.text("Y Pos: " + xy[0]);
+                if (glfwGetMouseButton(windowManager.getWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+                    ImGui.text("Left Mouse Button Pressed ");
+                }
+                shader.start();
+                guiRenderer.renderGUIs(mainMenuGui);
+                shader.stop();
+                ImGui.end();
+                ImGui.render();
+                implGl3.renderDrawData(ImGui.getDrawData());
+                if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+                    final long backupCurrentContext = glfwGetCurrentContext();
+                    ImGui.updatePlatformWindows();
+                    ImGui.renderPlatformWindowsDefault();
+                    glfwMakeContextCurrent(backupCurrentContext);
+                }
             }
 
-            if (!isMainMenu) {
+            if (!isMainMenu[0]) {
+                if (firstTick[0] == true) {
+                   camera.setPos(new Vector3f(0, 0, 0));
+                   camera.setYaw(0.0f);
+                   camera.setPitch(0.0f);
+                   firstTick[0] = false;
+                }
+
                 implGl3.newFrame();
                 implGlfw.newFrame();
                 ImGui.newFrame();
@@ -226,11 +305,12 @@ public class Game {
                 }
 
                 if (glfwGetKey(windowManager.getWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS && !isPaused) {//if the key escape is down un grab the mouse
-                    isPaused = true;
-                    if (isPaused) {
-                        glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                        guiRenderer.renderGUI(guiButton);
-                    }
+                    isMainMenu[0] = true;
+                    //  isPaused = true;
+//                    if (isPaused) {
+//                        glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+//                    //    guiRenderer.renderGUI(guiButton);
+//                    }
                 }
 
                 if (glfwGetMouseButton(windowManager.getWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {

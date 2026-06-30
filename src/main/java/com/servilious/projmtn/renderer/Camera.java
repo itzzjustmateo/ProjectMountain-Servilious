@@ -196,4 +196,16 @@ public class Camera {
     public float getYaw() {
         return yaw;
     }
+
+    public void setYaw(float yaw) {
+        this.yaw = yaw;
+    }
+
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
+    }
+
+    public void setPos(Vector3f pos) {
+        this.position = pos;
+    }
 }
