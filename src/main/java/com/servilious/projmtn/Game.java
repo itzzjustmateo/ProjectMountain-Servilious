@@ -156,7 +156,7 @@ public class Game {
                 // now store character for later use
 
                 Character character = new Character(texture, new Vector2i(face.glyph().bitmap().width(), face.glyph().bitmap().rows()),  new Vector2i(face.glyph().bitmap_left(), face.glyph().bitmap_top()), (int) face.glyph().advance().x());
-                chars.add(); //  std::pair<char, Character>(c, character));
+                //  chars.add(); //  std::pair<char, Character>(c, character));
             }
 
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -288,7 +288,16 @@ public class Game {
         guiButton[0] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, 0.25f), new Vector2f(0.35f, 0.15f), new Vector3f(r, g, b));
         guiButton[1] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, -0.1f), new Vector2f(0.35f, 0.15f), new Vector3f(1, 1, 1));
         guiButton[2] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, -0.45f), new Vector2f(0.35f, 0.15f), new Vector3f(1, 1, 1));
-        GuiTexture guiLogo = new GuiTexture(loader.loadTexture("logo/logo"), new Vector2f(-0.035f, 0.65f), new Vector2f(0.45f, 0.25f), new Vector3f(1, 1, 1));
+        Random mmRand = new Random();
+        int rand = mmRand.nextInt(2);
+        GuiTexture guiLogo;
+        if (rand % 2 == 1) {
+            //Thanks to @itzzmateo_ (Worst Social person ever) for the logoNew !
+            guiLogo = new GuiTexture(loader.loadTexture("logo/logoNew"), new Vector2f(-0.035f, 0.65f), new Vector2f(0.45f, 0.25f), new Vector3f(1, 1, 1));
+        } else  {
+            guiLogo = new GuiTexture(loader.loadTexture("logo/logo"), new Vector2f(-0.035f, 0.65f), new Vector2f(0.45f, 0.25f), new Vector3f(1, 1, 1));
+        }
+
 
 
 
@@ -312,13 +321,14 @@ public class Game {
         shader.setVec3(colorHl, new Vector3f(1,1 ,1));
         while (!windowManager.shouldDestroy()) {
             if (isMainMenu[0]) {
+                glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 firstTick[0] = false;
                 glDisable(GL_DEPTH_TEST);
                 glClear(GL_COLOR_BUFFER_BIT);
                 createNewImGUIFrame();
                 ImGui.begin("Main Menu Debug");
                 ImGui.setWindowSize(new ImVec2(200, 300));
-                RenderText(foshader, "Hello World", 100, 100, 20, new Vector3f(1, 1, 1));
+          //      RenderText(foshader, "Hello World", 100, 100, 20, new Vector3f(1, 1, 1));
                 float b0 = (float)  Math.clamp(Math.sin(glfwGetTime() % 1000), 0.0f, 1.0f);
                 r = 0;
                 g = 0;
