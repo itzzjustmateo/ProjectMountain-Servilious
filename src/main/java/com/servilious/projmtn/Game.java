@@ -1,7 +1,6 @@
 package com.servilious.projmtn;
 
 import com.servilious.projmtn.gui.*;
-import com.servilious.projmtn.gui.Font;
 import com.servilious.projmtn.renderer.Camera;
 import com.servilious.projmtn.renderer.MasterRenderer;
 import com.servilious.projmtn.renderer.Player;
@@ -15,7 +14,6 @@ import com.servilious.projmtn.renderer.model.textures.ModelTexture;
 import com.servilious.projmtn.renderer.model.textures.TerrainTexture;
 import com.servilious.projmtn.renderer.model.textures.TerrainTexturePack;
 import com.servilious.projmtn.renderer.model.textures.TexturedModel;
-import com.servilious.projmtn.util.MousePicker;
 import com.servilious.projmtn.window.GameWindowManager;
 import com.servilious.projmtn.world.Terrain;
 import imgui.ImGui;
@@ -24,16 +22,26 @@ import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.freetype.FT_Face;
+import org.lwjgl.util.freetype.FreeType;
 
-import java.awt.*;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.security.KeyPair;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL33.*;
 
 public class Game {
     //* Constants *//
@@ -46,6 +54,28 @@ public class Game {
     private ImGuiImplGl3 implGl3 = new ImGuiImplGl3();
     private String glslVer = "#version 330 core";
     private GameWindowManager windowManager = new GameWindowManager();
+    private  List<Character> chars = new ArrayList<>();
+    private FontShader fontShader;
+    private int fontVAO, fontVBO;
+
+
+
+    record Character() {
+        static int texID;
+        static Vector2i size;
+        static Vector2i bearing;
+        static int advance;
+
+        Character(int texID, Vector2i size, Vector2i bearing, int advance) {
+            this();
+            this.texID = texID;
+            this.size = size;
+            this.bearing = bearing;
+            this.advance = advance;
+
+        }
+    }
+
 
 
     public void main(String[] args) {
@@ -60,11 +90,100 @@ public class Game {
                 System.out.println("Fullscreen Enabled");
             }
         }
-
-
         windowManager.createWindow();
         initImGUI();
         VertexLoader loader = new VertexLoader();
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+
+            PointerBuffer pb = stack.mallocPointer(1);
+            int chk = FreeType.FT_Init_FreeType(pb);
+            if (chk != FreeType.FT_Err_Ok) {
+                System.err.println("Failed to load FreeType");
+            }
+
+            long lib = pb.get(0);
+            IntBuffer major = stack.mallocInt(1);
+            IntBuffer minor = stack.mallocInt(1);
+            IntBuffer patch = stack.mallocInt(1);
+
+            FreeType.FT_Library_Version(lib, major, minor, patch);
+            System.out.println("Loaded Free Type Library : Major Ver " + major.get(0) + ", Minor Ver" + minor.get(0) + ", Patch Ver " + patch.get(0));
+
+            FT_Face face = null;
+            PointerBuffer faceB = stack.mallocPointer(1);  //FT_Face.create(1).charmaps(); //  stack.mallocPointer(1);
+
+            long errFC = FreeType.FT_New_Face(lib, GlobalConstants.getResourcePath() + "/textures/font/arial.ttf", 0, faceB);
+            face = new FT_Face(faceB.getByteBuffer(217));
+            if (errFC != FreeType.FT_Err_Ok) {
+                System.err.println("Failed to load Font File!");
+            }
+
+            FreeType.FT_Set_Pixel_Sizes(face, 0, 48);
+            int elc = FreeType.FT_Load_Char(face, 'X', FreeType.FT_LOAD_RENDER);
+            if (elc != 0) {
+                System.err.println("Failed to read Glyth");
+            }
+
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
+
+            for (char c = 0; c < 128; c++) {
+                int ec = FreeType.FT_Load_Char(face, c, FreeType.FT_LOAD_RENDER);
+                if (ec != 0) {
+                    System.err.println("ERROR::FREETYTPE: Failed to load Glyph");
+                    continue;
+                }
+                // generate texture
+                int texture;
+                texture = glGenTextures();
+                glBindTexture(GL_TEXTURE_2D, texture);
+                glTexImage2D(
+                        GL_TEXTURE_2D,
+                        0,
+                        GL_RED,
+                        face.glyph().bitmap().width(), // bitmap.width,
+                        face.glyph().bitmap().rows(),
+                        0,
+                        GL_RED,
+                        GL_UNSIGNED_BYTE,
+                        face.glyph().bitmap().buffer(1)
+                );
+                // set texture options
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                // now store character for later use
+
+                Character character = new Character(texture, new Vector2i(face.glyph().bitmap().width(), face.glyph().bitmap().rows()),  new Vector2i(face.glyph().bitmap_left(), face.glyph().bitmap_top()), (int) face.glyph().advance().x());
+                chars.add(); //  std::pair<char, Character>(c, character));
+            }
+
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+            FreeType.FT_Done_Face(face);
+            FreeType.FT_Done_FreeType(lib );
+        }
+
+
+        fontVAO = glGenVertexArrays();
+        glBindVertexArray(fontVAO);
+        fontVBO = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, fontVBO);
+        glBufferData(GL_ARRAY_BUFFER, 0, GL_DYNAMIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, false, 4 * Float.BYTES, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+
+
+
+
+
+
+
+
 
         TerrainTexture bgTex = new TerrainTexture(loader.loadTexture("grass"));
         TerrainTexture rTex = new TerrainTexture(loader.loadTexture("dirt"));
@@ -110,15 +229,19 @@ public class Game {
         modelTexture.setShineFactor(1);
         modelTexture.setReflectivity(10000000);
         allTrees = new ArrayList<>();
+
         playerModelTex.setUseFakeLight(true);
         playerModelTex.setShineFactor(10);
         playerModelTex.setReflectivity(1000);
-        tex.setUseFakeLight(true);
+
+        tex.setUseFakeLight(false); //Weather to fake light on the tree or nah
         tex.setShineFactor(10);
         tex.setReflectivity(1000);
+
         modelTex1.setUseFakeLight(true);
         modelTex1.setShineFactor(10);
         modelTex1.setReflectivity(1000);
+
         lampModelTex.setUseFakeLight(true);
         lampModelTex.setShineFactor(10);
         lampModelTex.setReflectivity(1000);
@@ -137,14 +260,6 @@ public class Game {
         terArrX[7] = new Terrain(1,0, loader, terrainTexture, blendMap, "flatmap"); //positive quad X: 1, Z: 0
         terArrX[8] = new Terrain(1,1, loader, terrainTexture, blendMap, "flatmap"); //positive quad X: 1, Z: 0
 
-//        terArrX[0] = new Terrain(1,-1, loader, terrainTexture, blendMap, "heightmap_5");//negative quad positive X: 0, n
-//        terArrX[1] = new Terrain(-1,1, loader, terrainTexture, blendMap, "heightmap_7");//negative quad X: 1, Z: positiv
-//        terArrX[2] = new Terrain(-0,-1, loader, terrainTexture, blendMap, "heightmap_1"); //negative quad X: 0, Z: 1
-//        terArrX[3] = new Terrain(-1,-0, loader, terrainTexture, blendMap, "heightmap_4"); //negative quad X: 1, Z: 0
-//        terArrX[4] = new Terrain(-1,-1, loader, terrainTexture, blendMap, "heightmap_8"); //negative quad X: 1, Z: 1
-//        terArrX[5] = new Terrain(0,0, loader, terrainTexture, blendMap, "flatmap"); //positive quad X: 0, Z: 0
-//        terArrX[6] = new Terrain(0,1, loader, terrainTexture, blendMap, "hillymap_1");//positive quad X: 0, Z: 1
-//        terArrX[7] = new Terrain(1,0, loader, terrainTexture, blendMap, "reactormap"); //positive quad X: 1, Z: 0
 
         for (int x = 0; x < 1024; x++) {
             float randX = rand.nextInt(1024) / rand.nextFloat() * 0.2f;
@@ -173,7 +288,6 @@ public class Game {
         guiButton[0] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, 0.25f), new Vector2f(0.35f, 0.15f), new Vector3f(r, g, b));
         guiButton[1] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, -0.1f), new Vector2f(0.35f, 0.15f), new Vector3f(1, 1, 1));
         guiButton[2] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, -0.45f), new Vector2f(0.35f, 0.15f), new Vector3f(1, 1, 1));
-     //   guiButton[3] = new GuiTexture(loader.loadTexture("gui/Menu_ButtonGUI"), new Vector2f(0, -0.8f), new Vector2f(0.35f, 0.15f));
         GuiTexture guiLogo = new GuiTexture(loader.loadTexture("logo/logo"), new Vector2f(-0.035f, 0.65f), new Vector2f(0.45f, 0.25f), new Vector3f(1, 1, 1));
 
 
@@ -187,11 +301,9 @@ public class Game {
         mainMenuGui.add(guiButton[0]);
         mainMenuGui.add(guiButton[1]);
         mainMenuGui.add(guiButton[2]);
-
+        FontShader foshader = new FontShader();
 
         GuiRenderer guiRenderer = new GuiRenderer(loader);
-
-
 
         boolean[] isMainMenu = {true}; //Testing purposes only
         boolean[] firstTick = {false}; //Testing purposes only
@@ -203,35 +315,23 @@ public class Game {
                 firstTick[0] = false;
                 glDisable(GL_DEPTH_TEST);
                 glClear(GL_COLOR_BUFFER_BIT);
-                implGl3.newFrame();
-                implGlfw.newFrame();
-                ImGui.newFrame();
+                createNewImGUIFrame();
                 ImGui.begin("Main Menu Debug");
                 ImGui.setWindowSize(new ImVec2(200, 300));
+                RenderText(foshader, "Hello World", 100, 100, 20, new Vector3f(1, 1, 1));
                 float b0 = (float)  Math.clamp(Math.sin(glfwGetTime() % 1000), 0.0f, 1.0f);
-                glClearColor(0, 0, b0, 1.0f);
-
-                if (glfwGetKey(windowManager.getWindow(), GLFW_KEY_ENTER) == GLFW_PRESS && isMainMenu[0]) {
-                    glfwSetCursorPos(windowManager.getWindow(), GameWindowManager.getWidth() / 2, GameWindowManager.getHeight() / 2);
-                    glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                    glEnable(GL_DEPTH_TEST);
-                    isMainMenu[0] = false;
-
-                }
-                double[] xp = new double[1];
-                double[] xy = new double[1];
                 r = 0;
                 g = 0;
                 b = 0;
-
-
+                glClearColor(0, 0, b0, 1.0f);
                 glfwSetCursorPosCallback(windowManager.getWindow(), new GLFWCursorPosCallback() {
                     @Override
                     public void invoke(long window, double xpos, double ypos) {
-                        xp[0] = xpos;
-                        xy[0] = ypos;
                         if (xpos > 414 && ypos > 213 && ypos < 864 && ypos < 324) {
                             if (glfwGetMouseButton(windowManager.getWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+                                glfwSetCursorPos(windowManager.getWindow(), GameWindowManager.getWidth() / 2, GameWindowManager.getHeight() / 2);
+                                glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                                glEnable(GL_DEPTH_TEST);
                                 isMainMenu[0] = false;
                                 firstTick[0] = true;
                                 System.out.println("Button Pressed");
@@ -239,9 +339,6 @@ public class Game {
                         }
                     }
                 });
-
-                ImGui.text("X Pos: " + xp[0]);
-                ImGui.text("Y Pos: " + xy[0]);
                 if (glfwGetMouseButton(windowManager.getWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
                     ImGui.text("Left Mouse Button Pressed ");
                 }
@@ -249,14 +346,7 @@ public class Game {
                 guiRenderer.renderGUIs(mainMenuGui);
                 shader.stop();
                 ImGui.end();
-                ImGui.render();
-                implGl3.renderDrawData(ImGui.getDrawData());
-                if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-                    final long backupCurrentContext = glfwGetCurrentContext();
-                    ImGui.updatePlatformWindows();
-                    ImGui.renderPlatformWindowsDefault();
-                    glfwMakeContextCurrent(backupCurrentContext);
-                }
+                captureImGUIRenderData();
             }
 
             if (!isMainMenu[0]) {
@@ -266,10 +356,7 @@ public class Game {
                    camera.setPitch(0.0f);
                    firstTick[0] = false;
                 }
-
-                implGl3.newFrame();
-                implGlfw.newFrame();
-                ImGui.newFrame();
+                createNewImGUIFrame();
                 if (!isPaused) {
                     ImGui.begin("Hello World");
                     camera.move(isDevMode, windowManager);
@@ -306,11 +393,6 @@ public class Game {
 
                 if (glfwGetKey(windowManager.getWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS && !isPaused) {//if the key escape is down un grab the mouse
                     isMainMenu[0] = true;
-                    //  isPaused = true;
-//                    if (isPaused) {
-//                        glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-//                    //    guiRenderer.renderGUI(guiButton);
-//                    }
                 }
 
                 if (glfwGetMouseButton(windowManager.getWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
@@ -318,14 +400,7 @@ public class Game {
                     glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                 }
 
-                ImGui.render();
-                implGl3.renderDrawData(ImGui.getDrawData());
-                if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-                    final long backupCurrentContext = glfwGetCurrentContext();
-                    ImGui.updatePlatformWindows();
-                    ImGui.renderPlatformWindowsDefault();
-                    glfwMakeContextCurrent(backupCurrentContext);
-                }
+                captureImGUIRenderData();
             }
             windowManager.updateWindow();
         }
@@ -335,13 +410,115 @@ public class Game {
         windowManager.destroyWindow();
     }
 
+
+   private void RenderText(FontShader shader, String text, float x, float y, float scale, Vector3f color) {
+        // activate corresponding render state
+        shader.start();
+        glUniform3f(shader.getUniformLocation("textColor"), color.x, color.y, color.z);
+        glActiveTexture(GL_TEXTURE0);
+        glBindVertexArray(fontVAO);
+
+        // iterate through all characters
+        int c;
+        Character ch;
+        float vertices[][] = new float[6][4];
+        for (c = 0; c != text.length(); c++) {
+            ch = chars.get(c);
+
+            float xpos = x + ch.bearing.x * scale;
+            float ypos = y - (ch.size.y - ch.bearing.y) * scale;
+
+            float w = ch.size.x * scale;
+            float h = ch.size.y * scale;
+            // update VBO for each character
+
+            vertices[0][0] = xpos;
+            vertices[0][1] = ypos + h;
+            vertices[0][2] = 0.0f;
+            vertices[0][3] = 0.0f;
+
+            vertices[1][0] = xpos;
+            vertices[1][1] = ypos;
+            vertices[1][2] = 0.0f;
+            vertices[1][3] = 1.0f;
+
+            vertices[2][0] = xpos + w;
+            vertices[2][1] = ypos;
+            vertices[2][2] = 1.0f;
+            vertices[2][3] = 1.0f;
+
+            vertices[3][0] = xpos;
+            vertices[3][1] = ypos + h;
+            vertices[3][2] = 0.0f;
+            vertices[3][3] = 0.0f;
+
+            vertices[4][0] = xpos + w;
+            vertices[4][1] = ypos;
+            vertices[4][2] = 1.0f;
+            vertices[4][3] = 1.0f;
+
+            vertices[5][0] = xpos + w;
+            vertices[5][1] = ypos + h;
+            vertices[5][2] = 1.0f;
+            vertices[5][3] = 0.0f;
+            // render glyph texture over quad
+            glBindTexture(GL_TEXTURE_2D, ch.texID);
+            // update content of VBO memory
+            glBindBuffer(GL_ARRAY_BUFFER, fontVBO);
+            FloatBuffer fb = BufferUtils.createFloatBuffer(vertices.length);
+            for (int i =0; i < vertices.length; i++) {
+                fb.put(vertices[i]);
+            }
+            fb.flip();
+            glBufferSubData(GL_ARRAY_BUFFER,  0, fb);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            // render quad
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+            x += (ch.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+
+        }
+        glBindVertexArray(0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        shader.stop();
+    }
+
+    private void createNewImGUIFrame() {
+        implGl3.newFrame();
+        implGlfw.newFrame();
+        ImGui.newFrame();
+    }
+
+    private void captureImGUIRenderData() {
+        ImGui.render();
+        implGl3.renderDrawData(ImGui.getDrawData());
+        if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+            final long backupCurrentContext = glfwGetCurrentContext();
+            ImGui.updatePlatformWindows();
+            ImGui.renderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backupCurrentContext);
+        }
+    }
+
     private void initImGUI() {
         ImGui.init();
         implGlfw.init(windowManager.getWindow(), true);
         implGl3.init(glslVer);
     }
 }
-
+//  isPaused = true;
+//                    if (isPaused) {
+//                        glfwSetInputMode(windowManager.getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+//                    //    guiRenderer.renderGUI(guiButton);
+//                    }
+//        terArrX[0] = new Terrain(1,-1, loader, terrainTexture, blendMap, "heightmap_5");//negative quad positive X: 0, n
+//        terArrX[1] = new Terrain(-1,1, loader, terrainTexture, blendMap, "heightmap_7");//negative quad X: 1, Z: positiv
+//        terArrX[2] = new Terrain(-0,-1, loader, terrainTexture, blendMap, "heightmap_1"); //negative quad X: 0, Z: 1
+//        terArrX[3] = new Terrain(-1,-0, loader, terrainTexture, blendMap, "heightmap_4"); //negative quad X: 1, Z: 0
+//        terArrX[4] = new Terrain(-1,-1, loader, terrainTexture, blendMap, "heightmap_8"); //negative quad X: 1, Z: 1
+//        terArrX[5] = new Terrain(0,0, loader, terrainTexture, blendMap, "flatmap"); //positive quad X: 0, Z: 0
+//        terArrX[6] = new Terrain(0,1, loader, terrainTexture, blendMap, "hillymap_1");//positive quad X: 0, Z: 1
+//        terArrX[7] = new Terrain(1,0, loader, terrainTexture, blendMap, "reactormap"); //positive quad X: 1, Z: 0
 
 ///unused code
 //        Terrain quad1m1 = new Terrain(1,-1, loader, terrainTexture, blendMap, "heightmap_5");//negative quad positive X: 0, negative Z: 1

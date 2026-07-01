@@ -1,11 +1,12 @@
 #version 400 core
 
-in vec2 texCoords;
+in vec2 o_TexCoords;
+out vec4 color;
 
-out vec4 o_Color;
+uniform sampler2D text;
+uniform vec3 textColor;
 
-uniform sampler2D guiTex;
-
-void main(void) {
-    o_Color = texture(guiTex, texCoords);
+void main() {
+    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, o_TexCoords).r);
+    color = vec4(textColor, 1.0) * sampled;
 }
