@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group = 'com.servilious.projmtn'
@@ -7,15 +8,26 @@ version = '1.0-SNAPSHOT'
 
 project.ext.lwjglVersion = "3.4.0"
 project.ext.jomlVersion = "1.10.9"
-project.ext.lwjglNatives = "natives-windows"
+project.ext.imguiVersion = "1.92.0"
+
+switch (org.gradle.internal.os.OperatingSystem.current()) {
+    case org.gradle.internal.os.OperatingSystem.WINDOWS:
+        project.ext.lwjglNatives = "natives-windows"
+        break
+    case org.gradle.internal.os.OperatingSystem.LINUX:
+        project.ext.lwjglNatives = "natives-linux"
+        break
+    case org.gradle.internal.os.OperatingSystem.MAC_OS:
+        project.ext.lwjglNatives = "natives-macos"
+        break
+}
+
+application {
+    mainClass = 'com.servilious.projmtn.Game'
+}
 
 repositories {
     mavenCentral()
-}
-
-ext {
-    lwjglVersion = '3.4.0'
-    imguiVersion = "1.92.0"
 }
 
 dependencies {
@@ -40,7 +52,7 @@ dependencies {
 
     ['', '-opengl', '-glfw'].each {
         implementation "org.lwjgl:lwjgl$it:$lwjglVersion"
-        implementation "org.lwjgl:lwjgl$it::natives-windows"
+        implementation "org.lwjgl:lwjgl$it::$lwjglNatives"
     }
 
     implementation "io.github.spair:imgui-java-binding:$imguiVersion"
@@ -48,6 +60,7 @@ dependencies {
     implementation "io.github.spair:imgui-java-app:$imguiVersion"
 
     runtimeOnly "io.github.spair:imgui-java-natives-windows:$imguiVersion"
+    runtimeOnly "io.github.spair:imgui-java-natives-linux:$imguiVersion"
 }
 
 test {

@@ -36,6 +36,11 @@ Project Mountain: Servilious is a Java LWJGL game where you can explore a 3D wor
 | F1 | FPS / UPS |
 | F6 | ImGui Stats Menu |
 
+## Prerequisites
+
+- Java JDK 25 or later
+- Git
+
 ## Building
 
 ```bash
@@ -43,6 +48,8 @@ Project Mountain: Servilious is a Java LWJGL game where you can explore a 3D wor
 ```
 
 ## Running
+
+Run directly via Gradle (no manual installation required):
 
 ```bash
 ./gradlew run
