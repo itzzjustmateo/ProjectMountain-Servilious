@@ -39,5 +39,10 @@ bin/
 ### VS Code ###
 .vscode/
 
+### Runtime / Generated ###
+*.log
+imgui.ini
+FontMeta.txt
+
 ### Mac OS ###
 .DS_Store

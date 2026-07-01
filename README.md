@@ -1,40 +1,57 @@
-### Description ###
+# Project Mountain: Servilious
 
-## NOTE ## (THIS IS AN DIFFERENT LWJGL 3 BUILD OF THE GAME, THE ORIGINAL IS A LWJGL 2 BUILD)
+> **Note:** This is an LWJGL 3 build of the game. The original used LWJGL 2.
 
-Project Mountain : Servilious 
-is planed to be an Java LWJGL Game where you can Explore an map, 
-Traverse through Mountains or Forests, Settle Vilages or Build your own, 
-Gather resources and other!
+Project Mountain: Servilious is a Java LWJGL game where you can explore a 3D world, traverse mountains and forests, settle villages or build your own, gather resources, and more!
 
-### FUTURE CONTROLS ### 
+## Controls
 
-W -> Forward
-A -> Strafe Left
-D -> Strafe Right
-S -> Backwards
+### Movement
+| Key | Action |
+|-----|--------|
+| W | Forward |
+| A | Strafe Left |
+| S | Backwards |
+| D | Strafe Right |
+| SHIFT | Sprint |
+| SPACE | Jump |
+| Mouse | Camera |
 
-M -> World Map
-0 - 9 -> Select Weapon / Item
-G -> Gear Menu
-I -> Inventory Menu
-ENRER -> Chat Menu (only in multiplayer)
+### Gameplay
+| Key | Action |
+|-----|--------|
+| M | World Map |
+| 0-9 | Select Weapon / Item |
+| G | Gear Menu |
+| I | Inventory Menu |
+| ENTER | Chat Menu (multiplayer) |
+| ESC | Game Menu |
+| R | Ride Mount |
+| Q | View Quests |
+| V | Set Temporary Waymarker |
 
-ESC -> Game Menu
-SHIFT -> Sprint
-SPACE -> Jump
-R -> Ride Mount
-Q -> View Quests
-V -> Set Temporary Waymarker (Removes after game quit or if it was reached
+### Debug
+| Key | Action |
+|-----|--------|
+| F1 | FPS / UPS |
+| F6 | ImGui Stats Menu |
 
-Mouse movement -> Camera
-### DEBUG CONTROLLS ###
-F6 -> ImGUI Stats Menu
-F1 -> FPS / UPS
+## Building
 
+```bash
+./gradlew build
+```
 
-### ADITIONAL NOTICE ### 
+## Running
 
-If anyone wants to help Contribute they can ask me @ severedbow737 on discord, and tell me what you want to contribute for. i'll then decide if i want to add you as contributor or no !
+```bash
+./gradlew run
+```
 
+## Contributing
 
+Contributions are welcome! Reach out on Discord (severedbow737) to discuss what you'd like to work on.
+
+## License
+
+This project is currently unlicensed.
